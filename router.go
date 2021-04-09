@@ -246,6 +246,7 @@ func (r *Router) saveMatchedRoutePath(path string, handle Handle) Handle {
 	}
 }
 
+//封装函数
 // GET is a shortcut for router.Handle(http.MethodGet, path, handle)
 func (r *Router) GET(path string, handle Handle) {
 	r.Handle(http.MethodGet, path, handle)
@@ -291,34 +292,38 @@ func (r *Router) DELETE(path string, handle Handle) {
 // communication with a proxy).
 func (r *Router) Handle(method, path string, handle Handle) {
 	varsCount := uint16(0)
-
+	//如果没有传入method就panic
 	if method == "" {
 		panic("method must not be empty")
 	}
+	//path第一个字符必须为/
 	if len(path) < 1 || path[0] != '/' {
 		panic("path must begin with '/' in path '" + path + "'")
 	}
+	//必须传入handle函数处理
 	if handle == nil {
 		panic("handle must not be nil")
 	}
-
+	//如果开启保存routePath,默认是不开启的
 	if r.SaveMatchedRoutePath {
 		varsCount++
 		handle = r.saveMatchedRoutePath(path, handle)
 	}
-
+	//第一次进入初始化trees map
 	if r.trees == nil {
 		r.trees = make(map[string]*node)
 	}
-
+	//通过method获得root
 	root := r.trees[method]
+	//第一次进入为nil初始化
 	if root == nil {
 		root = new(node)
+		//然后将root放入trees
 		r.trees[method] = root
-
+		//全部允许
 		r.globalAllowed = r.allowed("*", "")
 	}
-
+	//根节点添加path和handle
 	root.addRoute(path, handle)
 
 	// Update maxParams
@@ -327,6 +332,7 @@ func (r *Router) Handle(method, path string, handle Handle) {
 	}
 
 	// Lazy-init paramsPool alloc func
+	//懒加载参数池,maxParams是0
 	if r.paramsPool.New == nil && r.maxParams > 0 {
 		r.paramsPool.New = func() interface{} {
 			ps := make(Params, 0, r.maxParams)
@@ -406,6 +412,7 @@ func (r *Router) Lookup(method, path string) (Handle, Params, bool) {
 	return nil, nil, false
 }
 
+//路径允许范围
 func (r *Router) allowed(path, reqMethod string) (allow string) {
 	allowed := make([]string, 0, 9)
 

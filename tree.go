@@ -64,6 +64,7 @@ func countParams(path string) uint16 {
 
 type nodeType uint8
 
+//node类型
 const (
 	static nodeType = iota // default
 	root
@@ -106,17 +107,21 @@ func (n *node) incrementChildPrio(pos int) int {
 
 // addRoute adds a node with the given handle to the path.
 // Not concurrency-safe!
+//给一个node对象添加一个路由和处理函数,并发不安全
 func (n *node) addRoute(path string, handle Handle) {
-	fullPath := path
-	n.priority++
+	fullPath := path //将path给完整路径
+	n.priority++     //优先级+1
 
 	// Empty tree
+	//如果父节点的path为空 & 父节点的索引为空
 	if n.path == "" && n.indices == "" {
+		//插入一个子节点
 		n.insertChild(path, fullPath, handle)
-		n.nType = root
+		//写入node类型 为root 1
+		n.nType = root //
 		return
 	}
-
+	//标签
 walk:
 	for {
 		// Find the longest common prefix.
